@@ -20,7 +20,9 @@ class Card:
 
 class Deck:
     def __init__(self, suits=None, values=None):
-        self.cards = [Card(suit, value) for value in values for suit in suits]
+        # Use default values for suits and values if not provided
+        self.cards = [Card(suit, value) for value in values or ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+                                         for suit in suits or ['hearts', 'diamonds', 'clubs', 'spades']]
 
     def shuffle(self):
         random.shuffle(self.cards)
@@ -29,12 +31,6 @@ class Deck:
         if not self.cards:
             raise ValueError("Deck is empty")
         return self.cards.pop()
-
-class EnglishDeck(Deck):
-    def __init__(self):
-        suits = ['hearts', 'diamonds', 'clubs', 'spades']
-        values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
-        super().__init__(suits, values)
 
 class Hand:
     def __init__(self):
@@ -62,7 +58,7 @@ class BlackjackGame:
     def __init__(self):
         self.player = Player("Player")
         self.dealer = Player("Dealer")
-        self.deck = EnglishDeck()
+        self.deck = Deck()
         self.deck.shuffle()
 
     def start_game(self):
@@ -107,6 +103,11 @@ class BlackjackGUI:
         self.root = tk.Tk()
         self.root.title("Blackjack")
 
+        self.create_frames()
+        self.create_stand_button()
+        self.start_game()
+
+    def create_frames(self):
         # Frames for the player and the dealer
         self.player_frame = tk.Frame(self.root)
         self.player_frame.pack(side=tk.LEFT, padx=10)
@@ -117,11 +118,10 @@ class BlackjackGUI:
         self.dealer_frame = tk.Frame(self.root)
         self.dealer_frame.pack(side=tk.RIGHT, padx=10)
 
+    def create_stand_button(self):
         # "Stand" button
         self.btn_stand = tk.Button(self.deck_frame, text="Stand", command=self.handle_stand, state=tk.NORMAL)
         self.btn_stand.pack(side=tk.BOTTOM)
-
-        self.start_game()
 
     def start_game(self):
         self.game.start_game()
@@ -134,7 +134,7 @@ class BlackjackGUI:
                 self.end_game("You've busted! The house wins.")
                 return
             self.update_interface()
-        except Exception as e:
+        except ValueError as e:
             messagebox.showerror("Error", str(e))
 
     def handle_stand(self):
@@ -148,7 +148,7 @@ class BlackjackGUI:
                 self.root.after(1000, self.process_dealer_hit)
             else:
                 self.end_game(self.game.determine_winner())
-        except Exception as e:
+        except ValueError as e:
             messagebox.showerror("Error", str(e))
 
     def update_interface(self):
